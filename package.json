@@ -1,0 +1,19 @@
+{
+  "name": "teste-credencial",
+  "version": "1.0.0",
+  "description": "AI agent built with Runflow SDK",
+  "main": "main.ts",
+  "type": "module",
+  "scripts": {
+    "test": "rf test",
+    "deploy": "rf agents deploy"
+  },
+  "dependencies": {
+    "@runflow-ai/sdk": "^1.1.7",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0"
+  }
+}
