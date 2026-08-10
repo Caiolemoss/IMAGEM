@@ -52,8 +52,7 @@ export async function main(input: AgentInput) {
   const { message, sessionId } = input;
 
   // Identify groups all logs, traces and memory under this user
-  // Replace with real user data from your input (e.g. input.phone, input.email)
-  identify('demo-user@example.com');
+  identify(input.metadata?.email || input.metadata?.phone || 'anonymous');
 
   // --- More identify examples ---
   // identify('+5511999999999');                              // phone
