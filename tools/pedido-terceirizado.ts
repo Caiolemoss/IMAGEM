@@ -15,12 +15,18 @@ import { fileURLToPath } from 'node:url';
 // dirname/join: utilitários para manipular caminhos de pastas/arquivos de forma multiplataforma.
 import { dirname, join } from 'node:path';
 
-// Em módulos ES (import/export) não existe a variável global "__dirname" como no CommonJS,
-// então ela precisa ser recriada manualmente a partir da URL do próprio arquivo.
-const __dirname = dirname(fileURLToPath(import.meta.url));
-// Monta o caminho absoluto até o arquivo pedidos-terceirizados.json, que fica na raiz do projeto
-// (join(__dirname, '..', ...) sobe um nível a partir da pasta "tools").
-const PEDIDOS_PATH = join(__dirname, '..', 'pedidos-terceirizados.json');
+// Resolvido dentro de uma função (não como const de nível de módulo) para que
+// import.meta.url só seja lido quando a tool for de fato executada, e não a
+// cada import de './tools' — evita derrubar toda mensagem caso o runtime não
+// exponha import.meta.url no momento em que o módulo é carregado.
+function getPedidosPath(): string {
+  // Em módulos ES (import/export) não existe a variável global "__dirname" como no CommonJS,
+  // então ela precisa ser recriada manualmente a partir da URL do próprio arquivo.
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  // Monta o caminho absoluto até o arquivo pedidos-terceirizados.json, que fica na raiz do projeto
+  // (join(__dirname, '..', ...) sobe um nível a partir da pasta "tools").
+  return join(__dirname, '..', 'pedidos-terceirizados.json');
+}
 
 // Formato de cada pedido terceirizado salvo no arquivo.
 interface PedidoTerceirizado {
@@ -36,11 +42,12 @@ interface PedidoTerceirizado {
  * if the file doesn't exist yet or is empty/corrupted.
  */
 function loadPedidos(): PedidoTerceirizado[] {
-  if (!existsSync(PEDIDOS_PATH)) {
+  const pedidosPath = getPedidosPath();
+  if (!existsSync(pedidosPath)) {
     return [];
   }
 
-  const content = readFileSync(PEDIDOS_PATH, 'utf-8').trim();
+  const content = readFileSync(pedidosPath, 'utf-8').trim();
   if (!content) {
     return [];
   }
@@ -91,7 +98,7 @@ export const registrarPedidoTerceirizado = createTool({
       pedidos.push(novoPedido);
 
       // Salva a lista completa de volta no arquivo, formatada para leitura humana.
-      writeFileSync(PEDIDOS_PATH, JSON.stringify(pedidos, null, 2), 'utf-8');
+      writeFileSync(getPedidosPath(), JSON.stringify(pedidos, null, 2), 'utf-8');
 
       log('pedido_terceirizado_registrado', { item });
 

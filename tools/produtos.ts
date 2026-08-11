@@ -13,12 +13,18 @@ import { fileURLToPath } from 'node:url';
 // dirname/join: utilitários para manipular caminhos de pastas/arquivos de forma multiplataforma.
 import { dirname, join } from 'node:path';
 
-// Em módulos ES (import/export) não existe a variável global "__dirname" como no CommonJS,
-// então ela precisa ser recriada manualmente a partir da URL do próprio arquivo.
-const __dirname = dirname(fileURLToPath(import.meta.url));
-// Monta o caminho absoluto até o arquivo produtos.csv, que fica uma pasta acima
-// (join(__dirname, '..', ...) sobe um nível a partir da pasta "tools").
-const CSV_PATH = join(__dirname, '..', 'produtos.csv');
+// Resolvido dentro de uma função (não como const de nível de módulo) para que
+// import.meta.url só seja lido quando a tool for de fato executada, e não a
+// cada import de './tools' — evita derrubar toda mensagem caso o runtime não
+// exponha import.meta.url no momento em que o módulo é carregado.
+function getCsvPath(): string {
+  // Em módulos ES (import/export) não existe a variável global "__dirname" como no CommonJS,
+  // então ela precisa ser recriada manualmente a partir da URL do próprio arquivo.
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  // Monta o caminho absoluto até o arquivo produtos.csv, que fica uma pasta acima
+  // (join(__dirname, '..', ...) sobe um nível a partir da pasta "tools").
+  return join(__dirname, '..', 'produtos.csv');
+}
 
 // Formato de cada linha do CSV depois de convertida em objeto.
 // Todos os campos são strings porque vêm direto do texto do CSV, sem conversão de tipo.
@@ -41,7 +47,7 @@ interface Produto {
  */
 function loadProdutos(): Produto[] {
   // Lê o arquivo inteiro como texto (utf-8) e remove espaços/quebras de linha nas pontas.
-  const content = readFileSync(CSV_PATH, 'utf-8').trim();
+  const content = readFileSync(getCsvPath(), 'utf-8').trim();
   // Quebra o texto em linhas (aceita tanto "\n" quanto "\r\n", padrão Windows).
   // A primeira linha é o cabeçalho (nomes das colunas); o resto (...lines) são os dados.
   const [headerLine, ...lines] = content.split(/\r?\n/);

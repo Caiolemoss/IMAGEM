@@ -15,12 +15,18 @@ import { fileURLToPath } from 'node:url';
 // dirname/join: utilitários para manipular caminhos de pastas/arquivos de forma multiplataforma.
 import { dirname, join } from 'node:path';
 
-// Em módulos ES (import/export) não existe a variável global "__dirname" como no CommonJS,
-// então ela precisa ser recriada manualmente a partir da URL do próprio arquivo.
-const __dirname = dirname(fileURLToPath(import.meta.url));
-// Monta o caminho absoluto até o arquivo orcamentos.json, que fica na raiz do projeto
-// (join(__dirname, '..', ...) sobe um nível a partir da pasta "tools").
-const ORCAMENTOS_PATH = join(__dirname, '..', 'orcamentos.json');
+// Resolvido dentro de uma função (não como const de nível de módulo) para que
+// import.meta.url só seja lido quando a tool for de fato executada, e não a
+// cada import de './tools' — evita derrubar toda mensagem caso o runtime não
+// exponha import.meta.url no momento em que o módulo é carregado.
+function getOrcamentosPath(): string {
+  // Em módulos ES (import/export) não existe a variável global "__dirname" como no CommonJS,
+  // então ela precisa ser recriada manualmente a partir da URL do próprio arquivo.
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  // Monta o caminho absoluto até o arquivo orcamentos.json, que fica na raiz do projeto
+  // (join(__dirname, '..', ...) sobe um nível a partir da pasta "tools").
+  return join(__dirname, '..', 'orcamentos.json');
+}
 
 // Formato de cada pedido de orçamento de arte salvo no arquivo.
 interface OrcamentoArte {
@@ -36,11 +42,12 @@ interface OrcamentoArte {
  * if the file doesn't exist yet or is empty/corrupted.
  */
 function loadOrcamentos(): OrcamentoArte[] {
-  if (!existsSync(ORCAMENTOS_PATH)) {
+  const orcamentosPath = getOrcamentosPath();
+  if (!existsSync(orcamentosPath)) {
     return [];
   }
 
-  const content = readFileSync(ORCAMENTOS_PATH, 'utf-8').trim();
+  const content = readFileSync(orcamentosPath, 'utf-8').trim();
   if (!content) {
     return [];
   }
@@ -90,7 +97,7 @@ export const criarOrcamentoArte = createTool({
       orcamentos.push(novoOrcamento);
 
       // Salva a lista completa de volta no arquivo, formatada para leitura humana.
-      writeFileSync(ORCAMENTOS_PATH, JSON.stringify(orcamentos, null, 2), 'utf-8');
+      writeFileSync(getOrcamentosPath(), JSON.stringify(orcamentos, null, 2), 'utf-8');
 
       log('orcamento_arte_solicitado', { produtoInteresse });
 
