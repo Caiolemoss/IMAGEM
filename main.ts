@@ -1,6 +1,5 @@
 import { Agent, anthropic, identify, log, track } from '@runflow-ai/sdk';
 import type { AgentInput } from '@runflow-ai/sdk';
-// import { connector } from '@runflow-ai/sdk';
 import { tools } from './tools';
 import { systemPrompt } from './prompts';
 
@@ -61,11 +60,6 @@ export async function main(input: AgentInput) {
   log('Processing message', { sessionId, messageLength: message.length });
 
   const result = await agent.process({ message, sessionId });
-
-  // --- Connector example (uncomment to call an external service) ---
-  // const lead = await connector('hubspot', 'create-contact', {
-  //   body: { email: 'user@email.com', firstname: 'John' },
-  // });
 
   track('message_processed', {
     model: 'claude-sonnet-4-6',

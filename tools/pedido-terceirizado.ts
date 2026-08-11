@@ -1,6 +1,8 @@
 // createTool: função do SDK do Runflow que registra esta função como uma "ferramenta"
 // que o agente de IA pode chamar durante uma conversa.
-import { createTool } from '@runflow-ai/sdk';
+import { createTool, log } from '@runflow-ai/sdk';
+// log: registra eventos de negócio na execução ativa (thread/execution já
+// identificados pelo Agent) sem precisar receber o "exec" como parâmetro.
 // zod: biblioteca de validação de esquemas. Usada aqui para descrever e validar
 // os parâmetros de entrada que o agente deve fornecer ao chamar a ferramenta.
 import { z } from 'zod';
@@ -90,6 +92,8 @@ export const registrarPedidoTerceirizado = createTool({
 
       // Salva a lista completa de volta no arquivo, formatada para leitura humana.
       writeFileSync(PEDIDOS_PATH, JSON.stringify(pedidos, null, 2), 'utf-8');
+
+      log('pedido_terceirizado_registrado', { item });
 
       return {
         success: true,

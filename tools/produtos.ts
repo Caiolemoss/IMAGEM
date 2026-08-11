@@ -1,6 +1,8 @@
 // createTool: função do SDK do Runflow que registra esta função como uma "ferramenta"
 // que o agente de IA pode chamar durante uma conversa.
-import { createTool } from '@runflow-ai/sdk';
+import { createTool, log } from '@runflow-ai/sdk';
+// log: registra eventos de negócio na execução ativa (thread/execution já
+// identificados pelo Agent) sem precisar receber o "exec" como parâmetro.
 // zod: biblioteca de validação de esquemas. Usada aqui para descrever e validar
 // os parâmetros de entrada que o agente deve fornecer ao chamar a ferramenta.
 import { z } from 'zod';
@@ -104,6 +106,12 @@ export const buscarProdutos = createTool({
         produto.material.toLowerCase().includes(termoLower) ||
         produto.acabamento_iluminacao.toLowerCase().includes(termoLower)
       );
+
+      if (encontrados.length > 0) {
+        log('produto_buscado', { termo, encontrados: encontrados.length });
+      } else {
+        log('busca_sem_resultado', { termo });
+      }
 
       // Retorno de sucesso: inclui o termo pesquisado, quantos resultados foram
       // encontrados e a lista completa dos produtos encontrados.
